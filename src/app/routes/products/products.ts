@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { IParams, Product } from 'src/app/interfaces/products.interface';
 
@@ -5,14 +6,12 @@ export default async function (fastify: FastifyInstance) {
   fastify.get(
     '/',
     async function (request: FastifyRequest, reply: FastifyReply) {
-      const client = await fastify.pg.connect();
       try {
-        const { rows } = await client.query('SELECT * FROM products');
-        return rows;
+        const products = await fastify.prisma.products.findMany();
+        return products;
       } catch (error) {
         console.log(error);
-      } finally {
-        client.release();
+        throw error;
       }
     }
   );
@@ -43,7 +42,7 @@ export default async function (fastify: FastifyInstance) {
     '/add',
     async function (
       request: FastifyRequest<{
-        Body: Product;
+        Body: Prisma.productsCreateInput;
       }>,
       reply: FastifyReply
     ) {
