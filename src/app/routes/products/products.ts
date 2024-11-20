@@ -68,7 +68,7 @@ export default async function (fastify: FastifyInstance) {
     async function (
       request: FastifyRequest<{
         Params: IParams;
-        Body: Product;
+        Body: Prisma.productsUpdateInput;
       }>,
       reply: FastifyReply
     ) {
