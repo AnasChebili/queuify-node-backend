@@ -10,3 +10,11 @@ const TaskSchema = z.object({
 });
 
 export default TaskSchema;
+
+export const CreateTaskSchema = TaskSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const UpdateTaskSchema = TaskSchema.partial();
