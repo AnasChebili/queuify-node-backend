@@ -7,12 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model products {
-  id          Int     @id @default(autoincrement())
-  title       String  @db.VarChar(255)
-  description String?
-  price       Decimal @db.Decimal(10, 2)
-  brand       String  @db.VarChar(100)
-  category    String  @db.VarChar(100)
-  thumbnail   String  @db.VarChar(255)
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Task {
+  id          String     @id @default(cuid()) // Unique identifier
+  title       String // Title of the task
+  description String? // Optional detailed description
+  status      TaskStatus @default(PENDING) // Current status (e.g., pending, in-progress, completed)
+  priority    Int? // Optional priority level (e.g., 1 for high, 2 for medium)
+  dueDate     DateTime? // Optional due date
+  createdAt   DateTime   @default(now()) // Automatically set timestamp
+  updatedAt   DateTime   @updatedAt // Auto-updated on modification
 }

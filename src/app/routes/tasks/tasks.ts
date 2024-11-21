@@ -6,8 +6,8 @@ export default async function (fastify: FastifyInstance) {
     '/',
     async function (request: FastifyRequest, reply: FastifyReply) {
       try {
-        const products = await fastify.prisma.products.findMany();
-        return products;
+        const tasks = await fastify.prisma.task.findMany();
+        return tasks;
       } catch (error) {
         console.log(error);
         throw error;
@@ -19,13 +19,13 @@ export default async function (fastify: FastifyInstance) {
     '/:id',
     async function (
       request: FastifyRequest<{
-        Params: { id: Prisma.productsUncheckedCreateInput['id'] };
+        Params: { id: Prisma.TaskUncheckedCreateInput['id'] };
       }>,
       reply: FastifyReply
     ) {
-      const id = Number(request.params.id);
+      const id = request.params.id;
       try {
-        const rows = await fastify.prisma.products.findUnique({
+        const rows = await fastify.prisma.task.findUnique({
           where: { id: id },
         });
         return rows;
@@ -39,12 +39,12 @@ export default async function (fastify: FastifyInstance) {
     '/add',
     async function (
       request: FastifyRequest<{
-        Body: Prisma.productsCreateInput;
+        Body: Prisma.TaskCreateInput;
       }>,
       reply: FastifyReply
     ) {
       try {
-        const response = await fastify.prisma.products.create({
+        const response = await fastify.prisma.task.create({
           data: request.body,
         });
         return response;
@@ -58,14 +58,14 @@ export default async function (fastify: FastifyInstance) {
     '/:id',
     async function (
       request: FastifyRequest<{
-        Params: { id: Prisma.productsUncheckedCreateInput['id'] };
-        Body: Prisma.productsUpdateInput;
+        Params: { id: Prisma.TaskUncheckedCreateInput['id'] };
+        Body: Prisma.TaskUpdateInput;
       }>,
       reply: FastifyReply
     ) {
-      const id = Number(request.params.id);
+      const id = request.params.id;
       try {
-        const response = await fastify.prisma.products.update({
+        const response = await fastify.prisma.task.update({
           where: { id },
           data: request.body,
         });
@@ -80,13 +80,13 @@ export default async function (fastify: FastifyInstance) {
     '/:id',
     async function (
       request: FastifyRequest<{
-        Params: { id: Prisma.productsUncheckedCreateInput['id'] };
+        Params: { id: Prisma.TaskUncheckedCreateInput['id'] };
       }>,
       reply: FastifyReply
     ) {
-      const id = Number(request.params.id);
+      const id = request.params.id;
       try {
-        const response = await fastify.prisma.products.delete({
+        const response = await fastify.prisma.task.delete({
           where: { id },
         });
         return response;
