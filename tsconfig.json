@@ -14,7 +14,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {},
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true,
   },
   "files": [],
   "include": [],
