@@ -1,6 +1,5 @@
 import { Prisma } from '@prisma/client';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { IParams, Product } from 'src/app/interfaces/products.interface';
 
 export default async function (fastify: FastifyInstance) {
   fastify.get(
@@ -19,7 +18,9 @@ export default async function (fastify: FastifyInstance) {
   fastify.get(
     '/:id',
     async function (
-      request: FastifyRequest<{ Params: IParams }>,
+      request: FastifyRequest<{
+        Params: { id: Prisma.productsUncheckedCreateInput['id'] };
+      }>,
       reply: FastifyReply
     ) {
       const { id } = request.params;
@@ -67,7 +68,7 @@ export default async function (fastify: FastifyInstance) {
     '/:id',
     async function (
       request: FastifyRequest<{
-        Params: IParams;
+        Params: { id: Prisma.productsUncheckedCreateInput['id'] };
         Body: Prisma.productsUpdateInput;
       }>,
       reply: FastifyReply
@@ -93,7 +94,9 @@ export default async function (fastify: FastifyInstance) {
   fastify.delete(
     '/:id',
     async function (
-      request: FastifyRequest<{ Params: IParams }>,
+      request: FastifyRequest<{
+        Params: { id: Prisma.productsUncheckedCreateInput['id'] };
+      }>,
       reply: FastifyReply
     ) {
       const { id } = request.params;
