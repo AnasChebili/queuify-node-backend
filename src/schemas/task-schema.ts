@@ -1,15 +1,18 @@
 import { z } from 'zod';
 
-const TaskSchema = z.object({
-  id: z.string().uuid(),
+export const TaskSchema = z.object({
+  id: z.string(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  status: z.enum(['pending', 'in_progress', 'completed']),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED']),
+  priority: z.number().int().optional(),
+  dueDate: z
+    .string()
+    .transform((str) => new Date(str))
+    .optional(),
   createdAt: z.date(),
   updatedAt: z.date().optional(),
 });
-
-export default TaskSchema;
 
 export const CreateTaskSchema = TaskSchema.omit({
   id: true,
@@ -17,4 +20,4 @@ export const CreateTaskSchema = TaskSchema.omit({
   updatedAt: true,
 });
 
-export const UpdateTaskSchema = TaskSchema.partial();
+export const UpdateTaskSchema = CreateTaskSchema.partial();

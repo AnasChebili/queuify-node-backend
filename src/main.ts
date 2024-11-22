@@ -1,6 +1,10 @@
 import Fastify from 'fastify';
 import { app } from './app/app';
 import { PrismaClient } from '@prisma/client';
+import {
+  serializerCompiler,
+  validatorCompiler,
+} from 'fastify-type-provider-zod';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -9,6 +13,9 @@ const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 const server = Fastify({
   logger: true,
 });
+
+server.setValidatorCompiler(validatorCompiler);
+server.setSerializerCompiler(serializerCompiler);
 
 // Create Prisma instance
 const prisma = new PrismaClient();
