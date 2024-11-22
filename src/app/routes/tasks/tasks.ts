@@ -4,6 +4,7 @@ import { TaskController } from '../../controllers/task-controller';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
   CreateTaskSchema,
+  ResponseTaskSchema,
   TaskSchema,
   UpdateTaskSchema,
 } from '../../../schemas/task-schema';
@@ -26,11 +27,13 @@ export default async function (fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        response: { 200: TaskSchema.array() },
+        response: { 200: ResponseTaskSchema.array() },
       },
     },
     async function (request: FastifyRequest, reply: FastifyReply) {
-      return TaskSchema.array().parse(await TaskController.getTasks(fastify));
+      return ResponseTaskSchema.array().parse(
+        await TaskController.getTasks(fastify)
+      );
     }
   );
 
@@ -41,7 +44,7 @@ export default async function (fastify: FastifyInstance) {
         params: z.object({
           id: TaskSchema.shape.id,
         }),
-        response: { 200: TaskSchema },
+        response: { 200: ResponseTaskSchema },
       },
     },
     async function (
@@ -50,7 +53,7 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return TaskSchema.parse(
+      return ResponseTaskSchema.parse(
         await TaskController.getTaskById(fastify, request.params.id)
       );
     }
@@ -61,7 +64,7 @@ export default async function (fastify: FastifyInstance) {
     {
       schema: {
         body: CreateTaskSchema,
-        response: { 200: TaskSchema },
+        response: { 200: ResponseTaskSchema },
       },
     },
     async function (
@@ -70,7 +73,7 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return TaskSchema.parse(
+      return ResponseTaskSchema.parse(
         await TaskController.addTask(fastify, request.body)
       );
     }
@@ -80,8 +83,11 @@ export default async function (fastify: FastifyInstance) {
     '/:id',
     {
       schema: {
+        params: z.object({
+          id: TaskSchema.shape.id,
+        }),
         body: UpdateTaskSchema,
-        response: { 200: TaskSchema },
+        response: { 200: ResponseTaskSchema },
       },
     },
     async function (
@@ -91,7 +97,7 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return TaskSchema.parse(
+      return ResponseTaskSchema.parse(
         await TaskController.updateTask(
           fastify,
           request.params.id,
@@ -105,8 +111,10 @@ export default async function (fastify: FastifyInstance) {
     '/:id',
     {
       schema: {
-        params: { id: TaskSchema.shape.id },
-        response: { 200: TaskSchema },
+        params: z.object({
+          id: TaskSchema.shape.id,
+        }),
+        response: { 200: ResponseTaskSchema },
       },
     },
     async function (
@@ -115,7 +123,7 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return TaskSchema.parse(
+      return ResponseTaskSchema.parse(
         await TaskController.deleteTask(fastify, request.params.id)
       );
     }
