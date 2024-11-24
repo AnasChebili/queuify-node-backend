@@ -15,26 +15,49 @@ export default async function (fastify: FastifyInstance) {
     '/',
     {
       schema: {
+        querystring: z.object({
+          page: z
+            .string()
+            .regex(/^\d+$/, 'Must be a positive integer')
+            .default('1')
+            .transform(Number),
+          limit: z
+            .string()
+            .regex(/^\d+$/, 'Must be a positive integer')
+            .default('10')
+            .transform(Number),
+        }),
         response: {
           200: z.object({
             status: z.literal('success'),
             data: ResponseTaskSchema.array(),
-            metadata: z.object({ total: z.number() }),
+            metadata: z.object({
+              total: z.number(),
+              page: z.number(),
+              limit: z.number(),
+              totalPages: z.number(),
+            }),
           }),
         },
       },
     },
-    async function (request: FastifyRequest, reply: FastifyReply) {
-      const tasks = await TaskController.getTasks(fastify);
-      const total = tasks.length;
+    async function (request, reply) {
+      const { page, limit } = request.query;
+
+      const tasks = await TaskController.getTasks(fastify, page, limit);
+      const total = await TaskController.getCount(fastify);
+      const totalPages = Math.ceil(total / limit);
 
       reply.header('Cache-Control', 'no-store');
 
       return {
-        status: 'success',
+        status: 'success' as const,
         data: ResponseTaskSchema.array().parse(tasks),
         metadata: {
           total,
+          page,
+          limit,
+          totalPages,
         },
       };
     }
@@ -55,12 +78,7 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     },
-    async function (
-      request: FastifyRequest<{
-        Params: { id: Prisma.TaskUncheckedCreateInput['id'] };
-      }>,
-      reply: FastifyReply
-    ) {
+    async function (request, reply) {
       const task = await TaskController.getTaskById(fastify, request.params.id);
 
       reply.header('Cache-Control', 'no-store');
@@ -85,12 +103,7 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     },
-    async function (
-      request: FastifyRequest<{
-        Body: Prisma.TaskCreateInput;
-      }>,
-      reply: FastifyReply
-    ) {
+    async function (request, reply) {
       const task = await TaskController.addTask(fastify, request.body);
 
       reply.header('Cache-Control', 'no-store');
@@ -118,13 +131,7 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     },
-    async function (
-      request: FastifyRequest<{
-        Params: { id: Prisma.TaskUncheckedCreateInput['id'] };
-        Body: Prisma.TaskUpdateInput;
-      }>,
-      reply: FastifyReply
-    ) {
+    async function (request, reply) {
       const task = await TaskController.updateTask(
         fastify,
         request.params.id,
@@ -155,12 +162,7 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     },
-    async function (
-      request: FastifyRequest<{
-        Params: { id: Prisma.TaskUncheckedCreateInput['id'] };
-      }>,
-      reply: FastifyReply
-    ) {
+    async function (request, reply) {
       const task = await TaskController.deleteTask(fastify, request.params.id);
 
       reply.header('Cache-Control', 'no-store');
