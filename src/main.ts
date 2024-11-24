@@ -1,10 +1,14 @@
-import Fastify from 'fastify';
+import Fastify, { FastifyError } from 'fastify';
 import { app } from './app/app';
 import { PrismaClient } from '@prisma/client';
 import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod';
+import { ValidationError } from './errors/validation-error';
+import { NotFoundError } from './errors/not-found-error';
+import { ServerError } from './errors/server-error';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -38,7 +42,13 @@ server.addHook('onClose', async (instance) => {
 // Register your application as a normal plugin.
 server.register(app);
 
-server.setErrorHandler((error, request, reply) => {
+server.setErrorHandler((fastifyError, request, reply) => {
+  let error: FastifyError | ValidationError | NotFoundError | ServerError =
+    fastifyError;
+
+  /*   if (error instanceof PrismaClientKnownRequestError)
+    error = new ValidationError('Bad Request', {}); */
+
   // Default values for unknown errors
   let statusCode = error.statusCode || 500;
   let message = error.message || 'Internal Server Error';
@@ -69,7 +79,7 @@ server.setErrorHandler((error, request, reply) => {
 
   // Send response
   reply.code(statusCode).send({
-    error: error.validation,
+    error,
     status,
     statusCode,
     message,
