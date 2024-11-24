@@ -38,6 +38,45 @@ server.addHook('onClose', async (instance) => {
 // Register your application as a normal plugin.
 server.register(app);
 
+server.setErrorHandler((error, request, reply) => {
+  // Default values for unknown errors
+  let statusCode = error.statusCode || 500;
+  let message = error.message || 'Internal Server Error';
+  let status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+
+  // Handle Fastify validation errors
+  if (error.validation) {
+    statusCode = 400;
+    message = error.message;
+    status = 'fail';
+  }
+
+  // Handle specific Node.js errors
+  if (error.code === 'ECONNREFUSED') {
+    statusCode = 503;
+    message = 'Service Unavailable';
+    status = 'error';
+  }
+
+  // Log error for debugging (customize as needed)
+  console.error({
+    timestamp: new Date().toISOString(),
+    path: request.url,
+    method: request.method,
+    errorMessage: error.message,
+    stack: error.stack,
+  });
+
+  // Send response
+  reply.code(statusCode).send({
+    error: error.validation,
+    status,
+    statusCode,
+    message,
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+  });
+});
+
 // Start listening.
 server.listen({ port, host }, (err) => {
   if (err) {
