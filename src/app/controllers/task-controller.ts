@@ -2,8 +2,16 @@ import { Prisma } from '@prisma/client';
 import { FastifyInstance } from 'fastify';
 
 export class TaskController {
-  public static async getTasks(fastify: FastifyInstance) {
-    const tasks = await fastify.prisma.task.findMany();
+  public static async getTasks(
+    fastify: FastifyInstance,
+    page: number,
+    limit: number
+  ) {
+    const tasks = await fastify.prisma.task.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
     return tasks;
   }
 
@@ -47,5 +55,9 @@ export class TaskController {
       where: { id },
     });
     return response;
+  }
+
+  public static async getCount(fastify: FastifyInstance) {
+    return await fastify.prisma.task.count();
   }
 }
