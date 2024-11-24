@@ -8,32 +8,35 @@ import {
   TaskSchema,
   UpdateTaskSchema,
 } from '../../../schemas/task-schema';
-import zodToJsonSchema from 'zod-to-json-schema';
 import { z } from 'zod';
-
-const paramsJsonSchema = {
-  type: 'object',
-  required: ['id'],
-  properties: {
-    id: {
-      type: 'string',
-      pattern: '^[0-9a-fA-F]{24}$',
-    },
-  },
-};
 
 export default async function (fastify: FastifyInstance) {
   fastify.withTypeProvider<ZodTypeProvider>().get(
     '/',
     {
       schema: {
-        response: { 200: ResponseTaskSchema.array() },
+        response: {
+          200: z.object({
+            status: z.literal('success'),
+            data: ResponseTaskSchema.array(),
+            metadata: z.object({ total: z.number() }),
+          }),
+        },
       },
     },
     async function (request: FastifyRequest, reply: FastifyReply) {
-      return ResponseTaskSchema.array().parse(
-        await TaskController.getTasks(fastify)
-      );
+      const tasks = await TaskController.getTasks(fastify);
+      const total = tasks.length;
+
+      reply.header('Cache-Control', 'no-store');
+
+      return {
+        status: 'success',
+        data: ResponseTaskSchema.array().parse(tasks),
+        metadata: {
+          total,
+        },
+      };
     }
   );
 
@@ -44,7 +47,12 @@ export default async function (fastify: FastifyInstance) {
         params: z.object({
           id: TaskSchema.shape.id,
         }),
-        response: { 200: ResponseTaskSchema },
+        response: {
+          200: z.object({
+            status: z.literal('success'),
+            data: ResponseTaskSchema,
+          }),
+        },
       },
     },
     async function (
@@ -53,18 +61,28 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return ResponseTaskSchema.parse(
-        await TaskController.getTaskById(fastify, request.params.id)
-      );
+      const task = await TaskController.getTaskById(fastify, request.params.id);
+
+      reply.header('Cache-Control', 'no-store');
+
+      return {
+        status: 'success' as const,
+        data: ResponseTaskSchema.parse(task),
+      };
     }
   );
 
   fastify.withTypeProvider<ZodTypeProvider>().post(
-    '/add',
+    '/',
     {
       schema: {
         body: CreateTaskSchema,
-        response: { 200: ResponseTaskSchema },
+        response: {
+          200: z.object({
+            status: z.literal('success'),
+            data: ResponseTaskSchema,
+          }),
+        },
       },
     },
     async function (
@@ -73,9 +91,14 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return ResponseTaskSchema.parse(
-        await TaskController.addTask(fastify, request.body)
-      );
+      const task = await TaskController.addTask(fastify, request.body);
+
+      reply.header('Cache-Control', 'no-store');
+
+      return {
+        status: 'success' as const,
+        data: ResponseTaskSchema.parse(task),
+      };
     }
   );
 
@@ -87,7 +110,12 @@ export default async function (fastify: FastifyInstance) {
           id: TaskSchema.shape.id,
         }),
         body: UpdateTaskSchema,
-        response: { 200: ResponseTaskSchema },
+        response: {
+          200: z.object({
+            status: z.literal('success'),
+            data: ResponseTaskSchema,
+          }),
+        },
       },
     },
     async function (
@@ -97,13 +125,18 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return ResponseTaskSchema.parse(
-        await TaskController.updateTask(
-          fastify,
-          request.params.id,
-          request.body
-        )
+      const task = await TaskController.updateTask(
+        fastify,
+        request.params.id,
+        request.body
       );
+
+      reply.header('Cache-Control', 'no-store');
+
+      return {
+        status: 'success' as const,
+        data: ResponseTaskSchema.parse(task),
+      };
     }
   );
 
@@ -114,7 +147,12 @@ export default async function (fastify: FastifyInstance) {
         params: z.object({
           id: TaskSchema.shape.id,
         }),
-        response: { 200: ResponseTaskSchema },
+        response: {
+          200: z.object({
+            status: z.literal('success'),
+            data: ResponseTaskSchema,
+          }),
+        },
       },
     },
     async function (
@@ -123,9 +161,14 @@ export default async function (fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) {
-      return ResponseTaskSchema.parse(
-        await TaskController.deleteTask(fastify, request.params.id)
-      );
+      const task = await TaskController.deleteTask(fastify, request.params.id);
+
+      reply.header('Cache-Control', 'no-store');
+
+      return {
+        status: 'success' as const,
+        data: ResponseTaskSchema.parse(task),
+      };
     }
   );
 }
