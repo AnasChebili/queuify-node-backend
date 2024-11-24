@@ -2,6 +2,7 @@ import Fastify, { FastifyError } from 'fastify';
 import { app } from './app/app';
 import { PrismaClient } from '@prisma/client';
 import {
+  isResponseSerializationError,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod';
@@ -9,6 +10,9 @@ import { ValidationError } from './errors/validation-error';
 import { NotFoundError } from './errors/not-found-error';
 import { ServerError } from './errors/server-error';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { mapPrismaErrortoErrorMessage } from './lib/error-handling';
+import { env } from 'process';
+import { HttpError } from '@fastify/sensible';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -46,45 +50,35 @@ server.setErrorHandler((fastifyError, request, reply) => {
   let error: FastifyError | ValidationError | NotFoundError | ServerError =
     fastifyError;
 
-  /*   if (error instanceof PrismaClientKnownRequestError)
-    error = new ValidationError('Bad Request', {}); */
-
-  // Default values for unknown errors
-  let statusCode = error.statusCode || 500;
-  let message = error.message || 'Internal Server Error';
-  let status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
-
-  // Handle Fastify validation errors
-  if (error.validation) {
-    statusCode = 400;
-    message = error.message;
-    status = 'fail';
+  if (error instanceof PrismaClientKnownRequestError) {
+    const message = mapPrismaErrortoErrorMessage(error).message;
+    if (message == 'Record Not Found') error = new NotFoundError(message);
   }
 
-  // Handle specific Node.js errors
-  if (error.code === 'ECONNREFUSED') {
-    statusCode = 503;
-    message = 'Service Unavailable';
-    status = 'error';
+  if (isResponseSerializationError(error))
+    error = new ServerError('Response Schema Parsing failed');
+
+  let res: any = {
+    name: 'Error',
+    message: 'something went wrong',
+    stack: env.NODE_ENV === 'development' ? error.stack : undefined,
+  };
+
+  if (error instanceof ServerError) {
+    res = {
+      name: error.name,
+      message: error.message,
+      stack: env.NODE_ENV === 'development' ? error.stack : undefined,
+    };
+  } else if (error instanceof NotFoundError) {
+    res = {
+      name: error.name,
+      Message: error.message,
+      stack: env.NODE_ENV === 'development' ? error.stack : undefined,
+    };
   }
 
-  // Log error for debugging (customize as needed)
-  console.error({
-    timestamp: new Date().toISOString(),
-    path: request.url,
-    method: request.method,
-    errorMessage: error.message,
-    stack: error.stack,
-  });
-
-  // Send response
-  reply.code(statusCode).send({
-    error,
-    status,
-    statusCode,
-    message,
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
-  });
+  return reply.code((error as HttpError).statusCode || 500).send(res);
 });
 
 // Start listening.

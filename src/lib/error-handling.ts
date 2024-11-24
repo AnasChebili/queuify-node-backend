@@ -8,8 +8,9 @@ const PrismaKnownErrorMap = {
 export const mapPrismaErrortoErrorMessage = (
   error: PrismaClientKnownRequestError
 ) => {
-  if (!(PrismaKnownErrorMap as Record<string, any>)[error.code]) throw error;
+  if (!(PrismaKnownErrorMap as Record<string, any>)[error.code]) {
+    throw error;
+  }
 
-  return PrismaKnownErrorMap[error.code as keyof typeof PrismaKnownErrorMap]
-    .message;
+  return PrismaKnownErrorMap[error.code as keyof typeof PrismaKnownErrorMap];
 };
