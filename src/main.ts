@@ -48,6 +48,10 @@ server.addHook('onClose', async (instance) => {
   await instance.prisma.$disconnect();
 });
 
+const jwt = require('fastify-jwt');
+
+server.register(jwt, { secret: process.env.JWT_SECRET });
+
 // Register your application as a normal plugin.
 server.register(app);
 
