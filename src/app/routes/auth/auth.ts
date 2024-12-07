@@ -3,6 +3,7 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { HttpError } from '../../../errors/http-error';
 import { UserRequestSchema } from '../../../schemas/auth-schema';
 import { ValidationError } from '../../../errors/validation-error';
+import { z } from 'zod';
 
 const bcrypt = require('bcrypt');
 
@@ -61,6 +62,20 @@ export default async function (fastify: FastifyInstance) {
         });
 
         return token;
+      }
+    );
+
+  fastify
+    .withTypeProvider<ZodTypeProvider>()
+    .get(
+      '/verify',
+      { schema: { headers: { authorization: z.string() } } },
+      async function (request, reply) {
+        try {
+          await request.jwtVerify();
+        } catch (err) {
+          return reply.status(401).send({ error: 'Unauthorized' });
+        }
       }
     );
 }
