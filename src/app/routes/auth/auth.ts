@@ -55,10 +55,12 @@ export default async function (fastify: FastifyInstance) {
         const user = await fastify.prisma.user.create({
           data: { email: email, passwordHash: passwordHash },
         });
-        const token = await fastify.jwt.sign({
+        const token = fastify.jwt.sign({
           email,
           passwordHash: passwordHash,
         });
+
+        return token;
       }
     );
 }
