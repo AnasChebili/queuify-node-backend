@@ -18,6 +18,7 @@ import {
 import { env } from 'process';
 import { HttpError } from '@fastify/sensible';
 import { ZodError, ZodIssue } from 'zod';
+import { JWT } from '@fastify/jwt';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -40,6 +41,7 @@ server.decorate('prisma', prisma);
 declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient;
+    jwt: JWT;
   }
 }
 
@@ -48,7 +50,7 @@ server.addHook('onClose', async (instance) => {
   await instance.prisma.$disconnect();
 });
 
-const jwt = require('fastify-jwt');
+const jwt = require('@fastify/jwt');
 
 server.register(jwt, { secret: process.env.JWT_SECRET });
 
