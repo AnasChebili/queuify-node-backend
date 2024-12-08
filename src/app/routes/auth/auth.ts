@@ -26,7 +26,7 @@ export default async function (fastify: FastifyInstance) {
           user.passwordHash
         );
         if (!isPasswordValid) {
-          throw new HttpError('invalid email or password', 403);
+          throw new HttpError('invalid email or password', 401);
         }
         const token = fastify.jwt.sign({
           email,
@@ -74,7 +74,7 @@ export default async function (fastify: FastifyInstance) {
         try {
           await request.jwtVerify();
         } catch (err) {
-          return reply.status(401).send({ error: 'Unauthorized' });
+          throw new HttpError('Unauthorized', 401);
         }
       }
     );
