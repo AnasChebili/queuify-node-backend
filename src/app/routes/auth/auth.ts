@@ -73,6 +73,14 @@ export default async function (fastify: FastifyInstance) {
       async function (request, reply) {
         try {
           await request.jwtVerify();
+          const { email, passwordHash } = request.user as {
+            email: string;
+            passwordHash: string;
+          };
+          const user = fastify.prisma.user.findFirstOrThrow({
+            where: { email: email },
+          });
+          return user;
         } catch (err) {
           throw new HttpError('Unauthorized', 401);
         }
