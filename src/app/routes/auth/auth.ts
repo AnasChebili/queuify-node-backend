@@ -4,6 +4,7 @@ import { HttpError } from '../../../errors/http-error';
 import { UserRequestSchema } from '../../../schemas/auth-schema';
 import { ValidationError } from '../../../errors/validation-error';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 
 const bcrypt = require('bcrypt');
 
