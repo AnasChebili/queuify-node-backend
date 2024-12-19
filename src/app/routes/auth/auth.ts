@@ -1,7 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { HttpError } from '../../../errors/http-error';
-import { UserRequestSchema } from '../../../schemas/auth-schema';
+import {
+  UserRequestSchema,
+  UserResponseSchema,
+} from '../../../schemas/auth-schema';
 import { ValidationError } from '../../../errors/validation-error';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
@@ -70,7 +73,12 @@ export default async function (fastify: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .get(
       '/verify',
-      { schema: { headers: { authorization: z.string() } } },
+      {
+        schema: {
+          headers: { authorization: z.string() },
+          response: UserResponseSchema,
+        },
+      },
       async function (request, reply) {
         try {
           await request.jwtVerify();
