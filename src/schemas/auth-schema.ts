@@ -9,5 +9,5 @@ export const UserResponseSchema = z.object({
   email: z.string(),
   id: z.string(),
   createdAt: z.date(),
-  passwordHash: z.string(),
+  passwordHash: z.string().nullable(),
 });
