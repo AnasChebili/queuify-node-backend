@@ -69,30 +69,34 @@ export default async function (fastify: FastifyInstance) {
       }
     );
 
-  fastify
-    .withTypeProvider<ZodTypeProvider>()
-    .get(
-      '/verify',
-      {
-        schema: {
-          headers: { authorization: z.string() },
-          response: UserResponseSchema,
-        },
+  fastify.withTypeProvider<ZodTypeProvider>().get(
+    '/verify',
+    {
+      schema: {
+        headers: z.object({ authorization: z.string() }),
+        response: { 200: UserResponseSchema },
       },
-      async function (request, reply) {
-        try {
-          await request.jwtVerify();
-          const { email, passwordHash } = request.user as {
-            email: string;
-            passwordHash: string;
-          };
-          const user = fastify.prisma.user.findFirstOrThrow({
-            where: { email: email },
-          });
-          return user;
-        } catch (err) {
-          throw new HttpError('Unauthorized', 401);
-        }
+    },
+    async function (request, reply) {
+      try {
+        console.log('=================1');
+
+        await request.jwtVerify();
+        console.log('================2');
+
+        const { email, passwordHash } = request.user as {
+          email: string;
+          passwordHash: string;
+        };
+        console.log('===========', email);
+
+        const user = fastify.prisma.user.findFirstOrThrow({
+          where: { email: email },
+        });
+        return user;
+      } catch (err) {
+        throw new HttpError('Unauthorized', 401);
       }
-    );
+    }
+  );
 }
