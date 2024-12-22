@@ -22,7 +22,7 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     },
-    async function (request, response) {
+    async function (request, reply) {
       const { email, password } = request.body;
       const user = await fastify.prisma.user.findFirst({
         where: { email: email },
@@ -38,6 +38,7 @@ export default async function (fastify: FastifyInstance) {
         email,
         passwordhash: user.passwordHash,
       });
+      reply.header('Cache-Control', 'no-store');
       return { status: 'success' as const, data: token };
     }
   );
@@ -71,7 +72,7 @@ export default async function (fastify: FastifyInstance) {
         email,
         passwordHash: passwordHash,
       });
-
+      reply.header('Cache-Control', 'no-store');
       return { status: 'success' as const, data: token };
     }
   );
@@ -101,6 +102,7 @@ export default async function (fastify: FastifyInstance) {
         const user = await fastify.prisma.user.findFirstOrThrow({
           where: { email: email },
         });
+        reply.header('Cache-Control', 'no-store');
         return {
           status: 'success' as const,
           data: UserResponseSchema.parse(user),
