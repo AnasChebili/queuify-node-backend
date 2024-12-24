@@ -51,10 +51,7 @@ export class AuthController {
     });
   }
 
-  public static async verify(
-    fastify: FastifyInstance,
-    request: FastifyRequest
-  ) {
+  public static async verify(request: FastifyRequest) {
     try {
       await request.jwtVerify();
       return request.user as {

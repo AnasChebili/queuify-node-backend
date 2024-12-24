@@ -11,9 +11,7 @@ import { z } from 'zod';
 import { AuthController } from '../../controllers/auth-controller';
 
 export default async function (fastify: FastifyInstance) {
-  fastify.addHook('preHandler', (request) =>
-    AuthController.verify(fastify, request)
-  );
+  fastify.addHook('preHandler', (request) => AuthController.verify(request));
   fastify.withTypeProvider<ZodTypeProvider>().get(
     '/',
     {
