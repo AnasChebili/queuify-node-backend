@@ -43,23 +43,7 @@ export default async function (fastify: FastifyInstance) {
     },
     async function (request, reply) {
       const { email, password } = request.body;
-      const isUser = await fastify.prisma.user.findFirst({
-        where: { email: email },
-      });
-      if (isUser) {
-        throw new ValidationError('email already in use', {
-          email: 'email already exists',
-        });
-      }
-      const saltRounds = 10;
-      const passwordHash = await bcrypt.hash(password, saltRounds);
-      const user = await fastify.prisma.user.create({
-        data: { email: email, passwordHash: passwordHash },
-      });
-      const token = fastify.jwt.sign({
-        email,
-        passwordHash: passwordHash,
-      });
+      const token = await AuthController.register(fastify, email, password);
       reply.header('Cache-Control', 'no-store');
       return { status: 'success' as const, data: token };
     }
