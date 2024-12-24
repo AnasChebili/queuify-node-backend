@@ -1,5 +1,4 @@
-import { Prisma } from '@prisma/client';
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { TaskController } from '../../controllers/task-controller';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
@@ -9,8 +8,12 @@ import {
   UpdateTaskSchema,
 } from '../../../schemas/task-schema';
 import { z } from 'zod';
+import { AuthController } from '../../controllers/auth-controller';
 
 export default async function (fastify: FastifyInstance) {
+  fastify.addHook('preHandler', (request) =>
+    AuthController.verify(fastify, request)
+  );
   fastify.withTypeProvider<ZodTypeProvider>().get(
     '/',
     {
