@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { HttpError } from '../../errors/http-error';
 import { ValidationError } from '../../errors/validation-error';
 
@@ -49,5 +49,13 @@ export class AuthController {
       email,
       passwordHash: passwordHash,
     });
+  }
+
+  public static verify(fastify: FastifyInstance, request: FastifyRequest) {
+    try {
+      request.jwtVerify();
+    } catch (err) {
+      throw new HttpError('Unauthorized', 401);
+    }
   }
 }

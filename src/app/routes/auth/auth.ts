@@ -63,25 +63,19 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async function (request, reply) {
-      try {
-        await request.jwtVerify();
-
-        const { email, passwordHash } = request.user as {
-          email: string;
-          passwordHash: string;
-        };
-
-        const user = await fastify.prisma.user.findFirstOrThrow({
-          where: { email: email },
-        });
-        reply.header('Cache-Control', 'no-store');
-        return {
-          status: 'success' as const,
-          data: UserResponseSchema.parse(user),
-        };
-      } catch (err) {
-        throw new HttpError('Unauthorized', 401);
-      }
+      AuthController.verify(fastify, request);
+      const { email, passwordHash } = request.user as {
+        email: string;
+        passwordHash: string;
+      };
+      const user = await fastify.prisma.user.findFirstOrThrow({
+        where: { email: email },
+      });
+      reply.header('Cache-Control', 'no-store');
+      return {
+        status: 'success' as const,
+        data: UserResponseSchema.parse(user),
+      };
     }
   );
 }
