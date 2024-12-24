@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { HttpError } from '../../../errors/http-error';
 import {
   UserRequestSchema,
   UserResponseSchema,
@@ -63,11 +62,7 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async function (request, reply) {
-      AuthController.verify(fastify, request);
-      const { email, passwordHash } = request.user as {
-        email: string;
-        passwordHash: string;
-      };
+      const { email, passwordHash } = AuthController.verify(fastify, request);
       const user = await fastify.prisma.user.findFirstOrThrow({
         where: { email: email },
       });

@@ -54,6 +54,10 @@ export class AuthController {
   public static verify(fastify: FastifyInstance, request: FastifyRequest) {
     try {
       request.jwtVerify();
+      return request.user as {
+        email: string;
+        passwordHash: string;
+      };
     } catch (err) {
       throw new UnauthorizedError('Unauthorized');
     }
