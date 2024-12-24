@@ -8,6 +8,7 @@ import {
 import { ValidationError } from '../../../errors/validation-error';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { AuthController } from '../../controllers/auth-controller';
 
 const bcrypt = require('bcrypt');
 
@@ -24,20 +25,7 @@ export default async function (fastify: FastifyInstance) {
     },
     async function (request, reply) {
       const { email, password } = request.body;
-      const user = await fastify.prisma.user.findFirst({
-        where: { email: email },
-      });
-      if (!user || !user.passwordHash) {
-        throw new HttpError('invalid email or password', 403);
-      }
-      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-      if (!isPasswordValid) {
-        throw new HttpError('invalid email or password', 401);
-      }
-      const token = fastify.jwt.sign({
-        email,
-        passwordhash: user.passwordHash,
-      });
+      const token = await AuthController.login(fastify, email, password);
       reply.header('Cache-Control', 'no-store');
       return { status: 'success' as const, data: token };
     }
