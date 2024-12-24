@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
-import { HttpError } from '../../errors/http-error';
 import { ValidationError } from '../../errors/validation-error';
+import { UnauthorizedError } from '../../errors/unauthorized-error';
 
 export class AuthController {
   static bcrypt = require('bcrypt');
@@ -13,14 +13,14 @@ export class AuthController {
       where: { email: email },
     });
     if (!user || !user.passwordHash) {
-      throw new HttpError('invalid email or password', 403);
+      throw new UnauthorizedError('invalid email or password');
     }
     const isPasswordValid = await AuthController.bcrypt.compare(
       password,
       user.passwordHash
     );
     if (!isPasswordValid) {
-      throw new HttpError('invalid email or password', 401);
+      throw new UnauthorizedError('invalid email or password');
     }
     return fastify.jwt.sign({
       email,
@@ -55,7 +55,7 @@ export class AuthController {
     try {
       request.jwtVerify();
     } catch (err) {
-      throw new HttpError('Unauthorized', 401);
+      throw new UnauthorizedError('Unauthorized');
     }
   }
 }
