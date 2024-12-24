@@ -8,6 +8,7 @@ import { ValidationError } from '../../../errors/validation-error';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { AuthController } from '../../controllers/auth-controller';
+import { OAuth2Namespace } from '@fastify/oauth2';
 
 const bcrypt = require('bcrypt');
 
@@ -73,4 +74,13 @@ export default async function (fastify: FastifyInstance) {
       };
     }
   );
+
+  fastify.get('/google/callback', async function (request, reply) {
+    const { token } =
+      await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
+        request
+      );
+
+    reply.send({ token });
+  });
 }
