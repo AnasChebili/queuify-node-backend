@@ -19,6 +19,7 @@ import { env } from 'process';
 import { HttpError } from '@fastify/sensible';
 import { ZodError, ZodIssue } from 'zod';
 import { JWT } from '@fastify/jwt';
+import { UnauthorizedError } from './errors/unauthorized-error';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -99,6 +100,12 @@ server.setErrorHandler((fastifyError, request, reply) => {
       name: error.name,
       Message: error.message,
       details: error.details,
+      stack: env.NODE_ENV === 'development' ? error.stack : undefined,
+    };
+  } else if (error instanceof UnauthorizedError) {
+    res = {
+      name: error.name,
+      Message: error.message,
       stack: env.NODE_ENV === 'development' ? error.stack : undefined,
     };
   }
