@@ -29,4 +29,6 @@ model User {
   email        String   @unique
   createdAt    DateTime @default(now())
   passwordHash String?
+  sub          String?
+  provider     String?
 }
