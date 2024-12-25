@@ -63,7 +63,7 @@ const oauthPlugin = require('@fastify/oauth2');
 
 server.register(oauthPlugin, {
   name: 'googleOAuth2',
-  scope: ['profile', 'email'],
+  scope: ['openid', 'profile', 'email'],
   credentials: {
     client: {
       id: process.env.GOOGLE_CLIENT_ID,

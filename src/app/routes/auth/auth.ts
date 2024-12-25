@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { AuthController } from '../../controllers/auth-controller';
 import { OAuth2Namespace } from '@fastify/oauth2';
+import axios from 'axios';
 
 const bcrypt = require('bcrypt');
 
@@ -81,6 +82,16 @@ export default async function (fastify: FastifyInstance) {
         request
       );
 
-    reply.send({ token });
+    const jwt = require('jsonwebtoken');
+    const decodedToken = jwt.decode(token.id_token);
+
+    const userInfoResponse = await axios.get(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      { headers: { Authorization: `Bearer ${token.access_token}` } }
+    );
+
+    const userInfo = userInfoResponse.data;
+
+    reply.send({ userInfo, decodedToken });
   });
 }
