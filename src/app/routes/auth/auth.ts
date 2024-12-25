@@ -64,9 +64,9 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async function (request, reply) {
-      const { email, passwordHash } = await AuthController.verify(request);
+      const { id } = await AuthController.verify(request);
       const user = await fastify.prisma.user.findFirstOrThrow({
-        where: { email: email },
+        where: { id },
       });
       reply.header('Cache-Control', 'no-store');
       return {
