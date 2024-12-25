@@ -43,6 +43,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient;
     jwt: JWT;
+    googleOAuth2: import('@fastify/oauth2').OAuth2Namespace;
   }
 }
 
@@ -57,6 +58,22 @@ server.register(jwt, { secret: process.env.JWT_SECRET });
 
 // Register your application as a normal plugin.
 server.register(app);
+
+const oauthPlugin = require('@fastify/oauth2');
+
+server.register(oauthPlugin, {
+  name: 'googleOAuth2',
+  scope: ['openid', 'profile', 'email'],
+  credentials: {
+    client: {
+      id: process.env.GOOGLE_CLIENT_ID,
+      secret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+    auth: oauthPlugin.GOOGLE_CONFIGURATION,
+  },
+  startRedirectPath: '/auth/google',
+  callbackUri: `${process.env.BASE_URL}/auth/google/callback`,
+});
 
 server.setErrorHandler((fastifyError, request, reply) => {
   let error: FastifyError | ValidationError | NotFoundError | ServerError =
