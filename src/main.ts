@@ -1,4 +1,4 @@
-import Fastify, { FastifyError } from 'fastify';
+import Fastify, { fastify, FastifyError } from 'fastify';
 import { app } from './app/app';
 import { PrismaClient } from '@prisma/client';
 import {
@@ -17,9 +17,14 @@ import {
 } from './lib/error-handling';
 import { env } from 'process';
 import { HttpError } from '@fastify/sensible';
-import { ZodError, ZodIssue } from 'zod';
+import { set, ZodError, ZodIssue } from 'zod';
 import { JWT } from '@fastify/jwt';
 import { UnauthorizedError } from './errors/unauthorized-error';
+import { createClient } from 'redis';
+import {
+  AbstractCacheCompliantObject,
+  FastifyCachingPluginOptions,
+} from '@fastify/caching';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -73,6 +78,29 @@ server.register(oauthPlugin, {
   },
   startRedirectPath: '/auth/google',
   callbackUri: `${process.env.BASE_URL}/auth/google/callback`,
+});
+
+const Redis = require('ioredis');
+
+const fastifyCaching = require('@fastify/caching');
+
+const redis = new Redis({
+  host: 'redis-16862.c55.eu-central-1-1.ec2.redns.redis-cloud.com',
+  port: 16862,
+  username: 'default',
+  password: '9YpzEEJh8W4XpZui23JjnTnOCxSPKxEc',
+});
+
+server.register(fastifyCaching, {
+  cache: {
+    set: async (key: string, value: any, ttl: number) => {
+      await redis.set(key, value, 'PX', ttl);
+    },
+    get: async (key: string) => {
+      const value = await redis.get(key);
+      return value ? { value } : null;
+    },
+  },
 });
 
 server.setErrorHandler((fastifyError, request, reply) => {
@@ -131,7 +159,7 @@ server.setErrorHandler((fastifyError, request, reply) => {
 });
 
 // Start listening.
-server.listen({ port, host }, (err) => {
+server.listen({ port, host }, async (err) => {
   if (err) {
     server.log.error(err);
     process.exit(1);
