@@ -76,22 +76,24 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  fastify.get('/google/callback', async function (request, reply) {
-    const { token } =
-      await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
+  fastify.withTypeProvider<ZodTypeProvider>().get(
+    '/google/callback',
+    {
+      schema: {
+        response: {
+          200: z.object({ status: z.literal('success'), data: z.string() }),
+        },
+      },
+    },
+    async function (request, reply) {
+      const returnToken = await AuthController.OAuthLoginRegister(
+        fastify,
         request
       );
-
-    const jwt = require('jsonwebtoken');
-    const decodedToken = jwt.decode(token.id_token);
-
-    const userInfoResponse = await axios.get(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      { headers: { Authorization: `Bearer ${token.access_token}` } }
-    );
-
-    const userInfo = userInfoResponse.data;
-
-    reply.send({ userInfo, decodedToken });
-  });
+      return {
+        status: 'success' as const,
+        data: returnToken,
+      };
+    }
+  );
 }
