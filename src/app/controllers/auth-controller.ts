@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { ValidationError } from '../../errors/validation-error';
 import { UnauthorizedError } from '../../errors/unauthorized-error';
+import axios from 'axios';
 
 export class AuthController {
   static bcrypt = require('bcrypt');
@@ -67,5 +68,40 @@ export class AuthController {
     } catch (err) {
       throw new UnauthorizedError('Unauthorized');
     }
+  }
+
+  public static async OAuthLoginRegister(
+    fastify: FastifyInstance,
+    request: FastifyRequest
+  ) {
+    const { token } =
+      await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
+        request
+      );
+
+    const jwt = require('jsonwebtoken');
+    const { sub } = jwt.decode(token.id_token);
+
+    const userInfoResponse = await axios.get(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      { headers: { Authorization: `Bearer ${token.access_token}` } }
+    );
+
+    const userInfo = userInfoResponse.data;
+
+    const user = await fastify.prisma.user.findFirst({
+      where: {
+        email: userInfo.email,
+      },
+    });
+    return await (user
+      ? AuthController.login(fastify, userInfo.email)
+      : AuthController.register(
+          fastify,
+          userInfo.email,
+          undefined,
+          sub,
+          'google'
+        ));
   }
 }

@@ -86,35 +86,10 @@ export default async function (fastify: FastifyInstance) {
       },
     },
     async function (request, reply) {
-      const { token } =
-        await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
-          request
-        );
-
-      const jwt = require('jsonwebtoken');
-      const { sub } = jwt.decode(token.id_token);
-
-      const userInfoResponse = await axios.get(
-        'https://www.googleapis.com/oauth2/v2/userinfo',
-        { headers: { Authorization: `Bearer ${token.access_token}` } }
+      const returnToken = await AuthController.OAuthLoginRegister(
+        fastify,
+        request
       );
-
-      const userInfo = userInfoResponse.data;
-
-      const user = await fastify.prisma.user.findFirst({
-        where: {
-          email: userInfo.email,
-        },
-      });
-      const returnToken = await (user
-        ? AuthController.login(fastify, userInfo.email)
-        : AuthController.register(
-            fastify,
-            userInfo.email,
-            undefined,
-            sub,
-            'google'
-          ));
       return {
         status: 'success' as const,
         data: returnToken,
