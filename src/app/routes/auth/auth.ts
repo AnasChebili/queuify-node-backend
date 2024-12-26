@@ -83,7 +83,7 @@ export default async function (fastify: FastifyInstance) {
       );
 
     const jwt = require('jsonwebtoken');
-    const decodedToken = jwt.decode(token.id_token);
+    const { sub } = jwt.decode(token.id_token);
 
     const userInfoResponse = await axios.get(
       'https://www.googleapis.com/oauth2/v2/userinfo',
@@ -92,6 +92,23 @@ export default async function (fastify: FastifyInstance) {
 
     const userInfo = userInfoResponse.data;
 
-    reply.send({ userInfo, decodedToken });
+    const user = await fastify.prisma.user.findFirst({
+      where: {
+        email: userInfo.email,
+      },
+    });
+    if (user) {
+      reply.send(await AuthController.login(fastify, userInfo.email));
+    } else {
+      reply.send(
+        await AuthController.register(
+          fastify,
+          userInfo.email,
+          undefined,
+          sub,
+          'google'
+        )
+      );
+    }
   });
 }
