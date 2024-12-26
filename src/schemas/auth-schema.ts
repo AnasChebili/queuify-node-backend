@@ -10,4 +10,6 @@ export const UserResponseSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
   passwordHash: z.string().nullable(),
+  sub: z.string().nullable(),
+  provider: z.string().nullable(),
 });
