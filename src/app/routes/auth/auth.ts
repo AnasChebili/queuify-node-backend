@@ -76,39 +76,49 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  fastify.get('/google/callback', async function (request, reply) {
-    const { token } =
-      await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
-        request
-      );
-
-    const jwt = require('jsonwebtoken');
-    const { sub } = jwt.decode(token.id_token);
-
-    const userInfoResponse = await axios.get(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      { headers: { Authorization: `Bearer ${token.access_token}` } }
-    );
-
-    const userInfo = userInfoResponse.data;
-
-    const user = await fastify.prisma.user.findFirst({
-      where: {
-        email: userInfo.email,
+  fastify.withTypeProvider<ZodTypeProvider>().get(
+    '/google/callback',
+    {
+      schema: {
+        response: {
+          200: z.object({ status: z.literal('success'), data: z.string() }),
+        },
       },
-    });
-    if (user) {
-      reply.send(await AuthController.login(fastify, userInfo.email));
-    } else {
-      reply.send(
-        await AuthController.register(
-          fastify,
-          userInfo.email,
-          undefined,
-          sub,
-          'google'
-        )
+    },
+    async function (request, reply) {
+      const { token } =
+        await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
+          request
+        );
+
+      const jwt = require('jsonwebtoken');
+      const { sub } = jwt.decode(token.id_token);
+
+      const userInfoResponse = await axios.get(
+        'https://www.googleapis.com/oauth2/v2/userinfo',
+        { headers: { Authorization: `Bearer ${token.access_token}` } }
       );
+
+      const userInfo = userInfoResponse.data;
+
+      const user = await fastify.prisma.user.findFirst({
+        where: {
+          email: userInfo.email,
+        },
+      });
+      const returnToken = await (user
+        ? AuthController.login(fastify, userInfo.email)
+        : AuthController.register(
+            fastify,
+            userInfo.email,
+            undefined,
+            sub,
+            'google'
+          ));
+      return {
+        status: 'success' as const,
+        data: returnToken,
+      };
     }
-  });
+  );
 }
