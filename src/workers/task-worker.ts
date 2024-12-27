@@ -1,5 +1,5 @@
 import Queue from 'bull';
-import { taskQueue } from 'src/queues/task-queue';
+import { taskQueue } from '../queues/task-queue';
 
 async function processTask(job: Queue.Job) {
   const { taskType, config } = job.data;

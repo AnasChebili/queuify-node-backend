@@ -22,6 +22,8 @@ import { JWT } from '@fastify/jwt';
 import { UnauthorizedError } from './errors/unauthorized-error';
 import fastifyRedis from '@fastify/redis';
 
+import './worker';
+
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 

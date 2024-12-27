@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { request } from 'http';
-import { taskQueue } from 'src/queues/task-queue';
+import { taskQueue } from '../../../queues/task-queue';
 import { z } from 'zod';
 
 export default async function (fastify: FastifyInstance) {
@@ -24,7 +24,7 @@ export default async function (fastify: FastifyInstance) {
     },
   };
   fastify.withTypeProvider<ZodTypeProvider>().post(
-    'schedule-task',
+    '/schedule-task',
     {
       schema: {
         body: z.object({
