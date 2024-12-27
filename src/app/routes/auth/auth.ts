@@ -4,14 +4,8 @@ import {
   UserRequestSchema,
   UserResponseSchema,
 } from '../../../schemas/auth-schema';
-import { ValidationError } from '../../../errors/validation-error';
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
 import { AuthController } from '../../controllers/auth-controller';
-import { OAuth2Namespace } from '@fastify/oauth2';
-import axios from 'axios';
-
-const bcrypt = require('bcrypt');
 
 export default async function (fastify: FastifyInstance) {
   fastify.withTypeProvider<ZodTypeProvider>().post(

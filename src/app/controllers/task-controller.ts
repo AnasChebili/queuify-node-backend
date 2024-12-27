@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { FastifyInstance } from 'fastify';
+import { ResponseTaskSchema } from '../../schemas/task-schema';
 
 export class TaskController {
   public static async getTasks(
@@ -7,11 +8,22 @@ export class TaskController {
     page: number,
     limit: number
   ) {
+    const key = `tasks:${page}:${limit}`;
+    const ttl = 500;
+
+    const cached = await fastify.redis.get(key);
+
+    if (cached) {
+      return ResponseTaskSchema.array().parse(JSON.parse(cached));
+    }
+
     const tasks = await fastify.prisma.task.findMany({
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },
     });
+
+    await fastify.redis.set(key, JSON.stringify(tasks), 'PX', ttl);
     return tasks;
   }
 
