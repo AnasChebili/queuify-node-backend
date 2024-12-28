@@ -4,7 +4,6 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { Connection } from 'pg';
 import { ChatMessageSchema } from '../../../schemas/chat-schema';
 import { z } from 'zod';
-import { timeStamp } from 'console';
 import { WebSocket } from 'ws';
 
 const connectedClients = new Set<WebSocketType>();
@@ -39,12 +38,12 @@ export default async function (fastify: FastifyInstance) {
     };
     socket.send(JSON.stringify(ChatMessageSchema.parse(welcomeMessage)));
     socket.on('message', (message) => {
-      const data = ChatMessageSchema.parse(message);
+      const data = ChatMessageSchema.parse(JSON.parse(message.toString()));
       const chatMessage = {
         type: 'message',
         username: data.username,
         content: data.content,
-        timeStamp: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
       };
 
       connectedClients.forEach((client) => {
