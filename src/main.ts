@@ -1,4 +1,4 @@
-import Fastify, { fastify, FastifyError } from 'fastify';
+import Fastify, { fastify, FastifyError, FastifyInstance } from 'fastify';
 import { app } from './app/app';
 import { PrismaClient } from '@prisma/client';
 import {
@@ -17,12 +17,13 @@ import {
 } from './lib/error-handling';
 import { env } from 'process';
 import { HttpError } from '@fastify/sensible';
-import { ZodError } from 'zod';
+import { boolean, ZodError } from 'zod';
 import { JWT } from '@fastify/jwt';
 import { UnauthorizedError } from './errors/unauthorized-error';
 import fastifyRedis from '@fastify/redis';
 
 import './worker';
+import fastifyWebsocket from '@fastify/websocket';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -58,9 +59,7 @@ server.addHook('onClose', async (instance) => {
 const jwt = require('@fastify/jwt');
 
 server.register(jwt, { secret: process.env.JWT_SECRET });
-
-// Register your application as a normal plugin.
-server.register(app);
+server.register(fastifyWebsocket);
 
 const oauthPlugin = require('@fastify/oauth2');
 
@@ -84,6 +83,9 @@ server.register(fastifyRedis, {
   username: 'default',
   password: '9YpzEEJh8W4XpZui23JjnTnOCxSPKxEc',
 });
+
+// Register your application as a normal plugin.
+server.register(app);
 
 server.setErrorHandler((fastifyError, request, reply) => {
   let error: FastifyError | ValidationError | NotFoundError | ServerError =
@@ -136,6 +138,7 @@ server.setErrorHandler((fastifyError, request, reply) => {
       stack: env.NODE_ENV === 'development' ? error.stack : undefined,
     };
   }
+  console.log(error);
 
   return reply.code((error as HttpError).statusCode || 500).send(res);
 });
