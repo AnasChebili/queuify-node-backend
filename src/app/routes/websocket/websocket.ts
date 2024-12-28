@@ -53,5 +53,19 @@ export default async function (fastify: FastifyInstance) {
         }
       });
     });
+    socket.on('close', () => {
+      connectedClients.delete(socket);
+      const leaveMessage = {
+        type: 'leave',
+        username: 'System',
+        content: 'a user has left the chat',
+        timeStamp: new Date().toISOString(),
+      };
+      connectedClients.forEach((client) => {
+        if (client.readyState == WebSocket.OPEN) {
+          client.send(JSON.stringify(ChatMessageSchema.parse(leaveMessage)));
+        }
+      });
+    });
   });
 }
