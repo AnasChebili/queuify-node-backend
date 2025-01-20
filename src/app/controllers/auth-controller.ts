@@ -61,6 +61,8 @@ export class AuthController {
 
   public static async verify(request: FastifyRequest) {
     try {
+      console.log(request.headers);
+
       await request.jwtVerify();
       return request.user as {
         id: string;

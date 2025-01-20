@@ -1,4 +1,4 @@
-import { string, z } from 'zod';
+import { z } from 'zod';
 
 export const UserRequestSchema = z.object({
   email: z.string().email(),
