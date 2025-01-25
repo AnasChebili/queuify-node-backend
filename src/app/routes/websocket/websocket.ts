@@ -38,6 +38,8 @@ export default async function (fastify: FastifyInstance) {
     };
     socket.send(JSON.stringify(ChatMessageSchema.parse(welcomeMessage)));
     socket.on('message', (message) => {
+      console.log('received message==========================');
+
       const data = ChatMessageSchema.parse(JSON.parse(message.toString()));
       const chatMessage = {
         type: 'message',
@@ -45,7 +47,6 @@ export default async function (fastify: FastifyInstance) {
         content: data.content,
         timestamp: new Date().toISOString(),
       };
-
       connectedClients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify(ChatMessageSchema.parse(chatMessage)));
@@ -58,7 +59,7 @@ export default async function (fastify: FastifyInstance) {
         type: 'leave',
         username: 'System',
         content: 'a user has left the chat',
-        timeStamp: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
       };
       connectedClients.forEach((client) => {
         if (client.readyState == WebSocket.OPEN) {

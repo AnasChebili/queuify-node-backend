@@ -33,6 +33,12 @@ const server = Fastify({
   logger: true,
 });
 
+server.register(require('@fastify/cors'), {
+  origin: 'http://127.0.0.1:5173',
+  credentials: true, // Enables `Access-Control-Allow-Credentials`
+  optionsSuccessStatus: 200, // Sets a successful status for preflight requests
+});
+
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
@@ -138,7 +144,6 @@ server.setErrorHandler((fastifyError, request, reply) => {
       stack: env.NODE_ENV === 'development' ? error.stack : undefined,
     };
   }
-  console.log(error);
 
   return reply.code((error as HttpError).statusCode || 500).send(res);
 });
