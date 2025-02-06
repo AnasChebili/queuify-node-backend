@@ -89,6 +89,12 @@ export default async function (fastify: FastifyInstance) {
           200: z.object({
             message: z.string(),
             jobId: z.any(),
+            taskType: z.enum([
+              'database-backup',
+              'report-generation',
+              'data-cleanup',
+            ]),
+            scheduledFor: z.date(),
           }),
         },
       },
@@ -99,7 +105,7 @@ export default async function (fastify: FastifyInstance) {
       const config = taskConfigs[taskType];
 
       const job = await taskQueue.add(
-        { taskType, config },
+        { taskType, config, scheduledFor: Date.now() + 60 * 60 * 1000 },
         {
           repeat: {
             cron: '0 * * * *', // every hour
@@ -110,39 +116,33 @@ export default async function (fastify: FastifyInstance) {
       return {
         message: 'Recurring task scheduled successfully',
         jobId: job.id,
+        taskType,
+        scheduledFor: new Date(Date.now()),
       };
     }
   );
 
-  fastify.withTypeProvider<ZodTypeProvider>().get(
-    '/scheduled-tasks',
-    {
-      schema: {
-        response: {
-          200: z
-            .object({
-              id: z.any(),
-              taskType: z.any(),
-              status: z.any(),
-              scheduledFor: z.union([z.string(), z.date()]),
-            })
-            .array(),
-        },
-      },
-    },
-    async (request, reply) => {
-      const jobs = await taskQueue.getJobs(['active', 'waiting', 'delayed']);
+  fastify
+    .withTypeProvider<ZodTypeProvider>()
+    .get('/scheduled-tasks', {}, async (request, reply) => {
+      const jobs = await taskQueue.getJobs([
+        'active',
+        'waiting',
+        'delayed',
+        'paused',
+
+        'failed',
+      ]);
 
       return Promise.all(
         jobs.map(async (job) => ({
           id: job.id,
-          taskType: job.data.type,
+          taskType: job.data.taskType,
           status: await job.getState(),
           scheduledFor: job.opts.delay
-            ? new Date(Date.now() + job.opts.delay)
+            ? new Date(job.data.scheduledFor)
             : 'immediate',
         }))
       );
-    }
-  );
+    });
 }
