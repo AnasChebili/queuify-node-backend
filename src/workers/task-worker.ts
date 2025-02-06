@@ -2,7 +2,7 @@ import Queue from 'bull';
 import { taskQueue } from '../queues/task-queue';
 
 async function processTask(job: Queue.Job) {
-  const { taskType, config } = job.data;
+  const { taskType, config, recurring } = job.data;
 
   console.log(`Starting ${taskType} at ${new Date().toISOString()}`);
 
@@ -15,11 +15,13 @@ async function processTask(job: Queue.Job) {
     );
   }
 
+  if (recurring) {
+    job.data.scheduledFor = job.data.scheduledFor + 60 * 60 * 1000;
+  }
   return {
     completed: true,
     taskType,
     finishedAt: new Date().toISOString(),
   };
 }
-
 taskQueue.process(processTask);

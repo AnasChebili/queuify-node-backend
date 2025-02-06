@@ -1,7 +1,6 @@
 import { WebSocket as WebSocketType } from '@fastify/websocket';
 import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { Connection } from 'pg';
 import { ChatMessageSchema } from '../../../schemas/chat-schema';
 import { z } from 'zod';
 import { WebSocket } from 'ws';
