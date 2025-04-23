@@ -130,7 +130,6 @@ export default async function (fastify: FastifyInstance) {
         'waiting',
         'delayed',
         'paused',
-
         'failed',
       ]);
 
