@@ -84,10 +84,10 @@ server.register(oauthPlugin, {
 });
 
 server.register(fastifyRedis, {
-  host: 'redis-16862.c55.eu-central-1-1.ec2.redns.redis-cloud.com',
-  port: 16862,
+  host: 'redis-11692.c240.us-east-1-3.ec2.redns.redis-cloud.com',
+  port: 11692,
   username: 'default',
-  password: '9YpzEEJh8W4XpZui23JjnTnOCxSPKxEc',
+  password: process.env.REDIS_PASSWORD,
 });
 
 // Register your application as a normal plugin.
