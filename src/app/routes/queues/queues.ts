@@ -108,13 +108,19 @@ export default async function (fastify: FastifyInstance) {
         {
           taskType,
           config,
-          scheduledFor: Date.now() + 60 * 60 * 1000,
+          scheduledFor:
+            Date.now() +
+            60 * 60 * 1000 -
+            new Date().getMinutes() * 60000 -
+            new Date().getSeconds() * 1000,
           recurring: true,
         },
+
         {
           repeat: {
-            cron: '* * * * *', // every hour
+            cron: '0 * * * *', // every hour
           },
+          jobId: `${taskType}:${Date.now()}`,
         }
       );
 
