@@ -105,11 +105,22 @@ export default async function (fastify: FastifyInstance) {
       const config = taskConfigs[taskType];
 
       const job = await taskQueue.add(
-        { taskType, config, scheduledFor: Date.now() + 60 * 60 * 1000 },
+        {
+          taskType,
+          config,
+          scheduledFor:
+            Date.now() +
+            60 * 60 * 1000 -
+            new Date().getMinutes() * 60000 -
+            new Date().getSeconds() * 1000,
+          recurring: true,
+        },
+
         {
           repeat: {
             cron: '0 * * * *', // every hour
           },
+          jobId: `${taskType}:${Date.now()}`,
         }
       );
 

@@ -17,7 +17,13 @@ async function processTask(job: Queue.Job) {
 
   if (recurring) {
     job.data.scheduledFor = job.data.scheduledFor + 60 * 60 * 1000;
+    await taskQueue.removeRepeatableByKey(job.opts.repeat?.key as string);
+    await taskQueue.add(job.data, {
+      repeat: { cron: '0 * * * *' },
+      jobId: `${taskType}:${Date.now()}`,
+    });
   }
+
   return {
     completed: true,
     taskType,
