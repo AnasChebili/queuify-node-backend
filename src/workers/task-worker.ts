@@ -14,10 +14,19 @@ async function processTask(job: Queue.Job) {
       setTimeout(resolve, config.duration / config.steps.length)
     );
   }
+  console.log('===============', recurring);
+
+  console.log('==============', job.data.scheduledFor);
 
   if (recurring) {
     job.data.scheduledFor = job.data.scheduledFor + 60 * 60 * 1000;
+    await taskQueue.removeRepeatableByKey(job.opts.repeat?.key as string);
+    await taskQueue.add(job.data, { repeat: { cron: '* * * * *' } });
   }
+  console.log('============', job.name);
+
+  console.log('==============', job.data.scheduledFor);
+
   return {
     completed: true,
     taskType,
