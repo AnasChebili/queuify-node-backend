@@ -55,11 +55,9 @@ export default async function (fastify: FastifyInstance) {
       const config = taskConfigs[taskType];
 
       const job = await taskQueue.add(
-        { taskType, config },
+        { taskType, config, scheduledFor },
         {
-          delay: scheduledFor
-            ? new Date(scheduledFor).getTime() - Date.now()
-            : 0,
+          delay: scheduledFor ? scheduledFor - Date.now() : 0,
           attempts: 2,
           removeOnComplete: false,
         }
