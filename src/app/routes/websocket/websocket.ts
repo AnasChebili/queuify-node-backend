@@ -32,8 +32,7 @@ export default async function (fastify: FastifyInstance) {
     const welcomeMessage = {
       type: 'join',
       username: 'System',
-      content:
-        'Welcome to the chat!, this is a centralized group chat to communicate with employees',
+      content: 'Welcome to the group chat, all employees can communicate here',
       timestamp: new Date().toISOString(),
     };
     socket.send(JSON.stringify(ChatMessageSchema.parse(welcomeMessage)));
