@@ -34,7 +34,7 @@ const server = Fastify({
 });
 
 server.register(require('@fastify/cors'), {
-  origin: 'http://127.0.0.1:5173',
+  origin: process.env.FRONTEND_URL,
   credentials: true, // Enables `Access-Control-Allow-Credentials`
   optionsSuccessStatus: 200, // Sets a successful status for preflight requests
 });
