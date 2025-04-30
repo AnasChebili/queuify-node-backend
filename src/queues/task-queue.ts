@@ -2,9 +2,9 @@ import Queue from 'bull';
 
 export const taskQueue = new Queue('task-queue', {
   redis: {
-    host: 'redis-11692.c240.us-east-1-3.ec2.redns.redis-cloud.com',
-    port: 11692,
-    username: 'default',
+    host: process.env.REDIS_HOST,
+    port: Number(process.env.REDIS_PORT),
+    username: process.env.REDIS_USERNAME,
     password: process.env.REDIS_PASSWORD,
   },
 });

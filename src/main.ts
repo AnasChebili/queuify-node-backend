@@ -34,7 +34,7 @@ const server = Fastify({
 });
 
 server.register(require('@fastify/cors'), {
-  origin: 'http://127.0.0.1:5173',
+  origin: process.env.FRONTEND_URL,
   credentials: true, // Enables `Access-Control-Allow-Credentials`
   optionsSuccessStatus: 200, // Sets a successful status for preflight requests
 });
@@ -84,9 +84,9 @@ server.register(oauthPlugin, {
 });
 
 server.register(fastifyRedis, {
-  host: 'redis-11692.c240.us-east-1-3.ec2.redns.redis-cloud.com',
-  port: 11692,
-  username: 'default',
+  host: process.env.REDIS_HOST,
+  port: Number(process.env.REDIS_PORT),
+  username: process.env.REDIS_USERNAME,
   password: process.env.REDIS_PASSWORD,
 });
 
