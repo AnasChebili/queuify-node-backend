@@ -84,7 +84,9 @@ export default async function (fastify: FastifyInstance) {
         fastify,
         request
       );
-      reply.redirect('http://127.0.0.1:5173/auth?access_token=' + returnToken);
+      reply.redirect(
+        `${process.env.FRONTEND_URL}/auth?access_token=` + returnToken
+      );
       return {
         status: 'success' as const,
         data: returnToken,
